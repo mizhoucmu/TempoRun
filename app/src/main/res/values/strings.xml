@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">HeartRun</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_cadence">cadence</string>
+    <string name="title_activity_run">Run</string>
+    <string name="miles">miles</string>
+    <string name="pace">Current Tempo:</string>
+    <string name="default_tempo">0</string>
+</resources>
