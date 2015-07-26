@@ -40,8 +40,8 @@ import com.spotify.sdk.android.player.Spotify;
 import java.util.Date;
 
 
-public class Run extends ActionBarActivity implements SensorEventListener, PlayerNotificationCallback, ConnectionStateCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMyLocationChangeListener, ResultCallback<Status> {
-    private final String TAG = "======";
+public class Run extends ActionBarActivity implements SensorEventListener, PlayerNotificationCallback, ConnectionStateCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+    private static final String TAG = "======";
     private final int STATUS_CALMDOWN = 0;
     private final int STATUS_WARMUP = 1;
     private final int STATUS_PEAK = 2;
@@ -53,6 +53,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
     private final int TIMES_REQUIRED_TO_CHANGE = 3; //防止歌曲被change的频率太高，设置必须request要求多少次以后才能换歌
     private final int MIN_ACC = 10;
     private final long MIN_INTERVAL = 500l;
+    private static final double MILE2METER = 1609.344;
 
 
     private ImageButton musicOnButton;
@@ -289,13 +290,13 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
     }
 
     private void playOnTempo(int tempo) {
-        Log.d(TAG,"playOnTempo:" + tempo);
+        Log.d(TAG, "playOnTempo:" + tempo);
         if (mPlayer == null) {
-            Log.d(TAG,"mPlayer not ready");
+            Log.d(TAG, "mPlayer not ready");
         }
         // change music according to tempo
         if (musicOn && heartOn && mPlayer != null) {
-            Log.d(TAG,"READY TO PLAY");
+            Log.d(TAG, "READY TO PLAY");
             if (isPlaying == false) {
                 Log.d(TAG, "Start to play");
                 mPlayer.play(uris[getStage(tempo)]);
@@ -468,6 +469,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
             }
             case RUNNING_PAUSED: {
                 Log.d(TAG, "setRunning: Running state: PAUSED");
+                resetLocation();
                 RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                 params1.addRule(RelativeLayout.CENTER_VERTICAL);
                 ImageButton stopButton = new ImageButton(this);
@@ -504,6 +506,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
             case RUNNING_STOPPED: {
                 Log.d(TAG, "setRunning: Running state: STOPPED");
                 stopLocationService();
+                resetLocation();
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                 ImageButton shareButton = new ImageButton(this);
                 shareButton.setLayoutParams(params);
@@ -542,8 +545,6 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
     public void onConnected(Bundle bundle) {
         PendingResult<Status> status = LocationServices.FusedLocationApi.requestLocationUpdates(mLocationClient,
                 REQUEST, this);
-        status.setResultCallback(this);
-
         Log.i(TAG, "onConnected:");
     }
 
@@ -557,16 +558,13 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
         Log.d(TAG, "onLocationChanged");
         if (runningState == RUNNING_STARTED) {
             if (lastLocation == null) {
-                total_miles = 0;
+
             } else {
                 if (mLocationClient != null && mLocationClient.isConnected()) {
-
-                    double deltaLat = location.getLatitude() - lastLocation.getLatitude();
-                    double deltaLong = location.getLongitude() - lastLocation.getLongitude();
-                    double dis = Math.sqrt(deltaLat * deltaLat + deltaLong * deltaLong);
-                    Log.d(TAG, "Current Location: " + deltaLat + ", " + deltaLong);
+                    double dis = DistanceOfTwoPoints(lastLocation.getLatitude(), lastLocation.getLongitude(), location.getLatitude(), location.getLongitude());
                     total_miles += dis;
-                    totalMileTV.setText(String.format("%,.2f", total_miles));
+                    Log.d(TAG, "[" + location.getLatitude() + ", " + location.getLongitude() + "], moved:" + dis + " total:" + total_miles);
+                    totalMileTV.setText(getDistanceText(total_miles));
                 }
             }
             lastLocation = location;
@@ -578,8 +576,13 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
     }
 
     private void resetDistance() {
+        Log.d(TAG,"resetDistance");
         total_miles = 0;
-        totalMileTV.setText(String.format("%.2f", 0.0));
+        totalMileTV.setText(getDistanceText(total_miles));
+        lastLocation = null;
+    }
+    private void resetLocation() {
+        Log.d(TAG,"resetLocation");
         lastLocation = null;
     }
 
@@ -599,28 +602,42 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
     }
 
 
-    public void onMyLocationChange(Location location) {
-        Log.d(TAG, "onMyLocationChange");
-        if (runningState == RUNNING_STARTED) {
-            if (lastLocation == null) {
-                total_miles = 0;
-            } else {
-                if (mLocationClient != null && mLocationClient.isConnected()) {
+    /**
+     * Calculate distance of latitude and longitude
+     */
 
-                    double deltaLat = location.getLatitude() - lastLocation.getLatitude();
-                    double deltaLong = location.getLongitude() - lastLocation.getLongitude();
-                    double dis = Math.sqrt(deltaLat * deltaLat + deltaLong * deltaLong);
-                    Log.d(TAG, "Current Location: " + deltaLat + ", " + deltaLong);
-                    total_miles += dis;
-                    totalMileTV.setText(String.format("%,.2f", total_miles));
-                }
-            }
-            lastLocation = location;
-        }
+    private static final double EARTH_RADIUS = 6378137;
+
+
+    private static double rad(double d) {
+        return d * Math.PI / 180.0;
     }
 
-    @Override
-    public void onResult(Status status) {
-        Log.d(TAG,"update status: " + status.getStatus() + " " + status.getStatusMessage());
+    /**
+     * 根据两点间经纬度坐标（double值），计算两点间距离，
+     *
+     * @param lat1
+     * @param lng1
+     * @param lat2
+     * @param lng2
+     * @return 距离：单位为米
+     */
+    public static double DistanceOfTwoPoints(double lat1, double lng1,
+                                             double lat2, double lng2) {
+        double radLat1 = rad(lat1);
+        double radLat2 = rad(lat2);
+        double a = radLat1 - radLat2;
+        double b = rad(lng1) - rad(lng2);
+        double s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2)
+                + Math.cos(radLat1) * Math.cos(radLat2)
+                * Math.pow(Math.sin(b / 2), 2)));
+        s = s * EARTH_RADIUS;
+        Log.d(TAG,"current s:" + s);
+        s = Math.round(s * 10000) / 10000;
+        return s;
+    }
+
+    private String getDistanceText(Double dis) {
+        return String.format("%.2f",(dis / MILE2METER));
     }
 }
