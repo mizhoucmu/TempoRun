@@ -8,4 +8,7 @@
     <string name="miles">miles</string>
     <string name="pace">Current Tempo:</string>
     <string name="default_tempo">0</string>
+    <string name="description">Description</string>
+    <string name="TweetButton">Tweet</string>
+    <string name="UpdateStatusLabel">Update Status</string>
 </resources>
