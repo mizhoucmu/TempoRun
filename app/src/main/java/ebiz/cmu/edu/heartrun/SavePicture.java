@@ -216,7 +216,6 @@ public class SavePicture extends ActionBarActivity {
             if (params[0].trim().length() != 0) {
                 try {
                     AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, params[0]);
-//                    AccessToken accessToken = twitter.getOAuthAccessToken(requestToken);
                     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString(ConstantValues.PREFERENCE_TWITTER_OAUTH_TOKEN, accessToken.getToken());

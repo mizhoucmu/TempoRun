@@ -53,8 +53,8 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
     private final int PEAK_THRESHOLD = 80;
     private final long ONE_MIN = 60000l;
     private final long TEN_SEC = 10000l;
-    private final int RECORD_WINDOW = 10;
-    private final int TIMES_REQUIRED_TO_CHANGE = 5; //防止歌曲被change的频率太高，设置必须request要求多少次以后才能换歌
+    private final int RECORD_WINDOW = 5;
+    private final int TIMES_REQUIRED_TO_CHANGE = 3; //防止歌曲被change的频率太高，设置必须request要求多少次以后才能换歌
     private final int HIT_THRESHOLD = 18;
     private final long MIN_INTERVAL = 600l;
     private static final double MILE2METER = 1609.344;
