@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -18,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -45,6 +47,7 @@ import twitter4j.conf.ConfigurationBuilder;
 public class SavePicture extends ActionBarActivity {
     ImageView imgView;
     ImageButton twitterButton;
+    ImageButton cancel;
     String pic_path;
     Bitmap bitmap;
 
@@ -61,11 +64,17 @@ public class SavePicture extends ActionBarActivity {
         context = this;
         setContentView(R.layout.tweet_preview);
         imgView = (ImageView) findViewById(R.id.pic_to_save);
-        showPicture();
-        tweet();
+        cancel = (ImageButton) findViewById(R.id.cancel);
+//        cancel.setBackgroundColor(Color.parseColor("#EEEEEE"));
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent run = new Intent(SavePicture.this, TakePhoto.class);
+                startActivity(run);
+            }
+        });
 
 
-//Twitter
         twitterButton = (ImageButton) findViewById(R.id.twitter);
         twitterButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,8 +82,7 @@ public class SavePicture extends ActionBarActivity {
                 tweet();
             }
         });
-
-
+        showPicture();
     }
 
 
@@ -201,7 +209,7 @@ public class SavePicture extends ActionBarActivity {
 
             String status = "#HeartRun I just finished " + miles + " Miles" + " at " + timeStamp;
             new TwitterUpdateStatusTask().execute(status);
-            Intent run = new Intent(SavePicture.this,Run.class);
+            Intent run = new Intent(SavePicture.this, Run.class);
             startActivity(run);
         }
     }
