@@ -1,5 +1,5 @@
 # HeartRun
-Final Project for 08732, a running app, which can play music according to the runner's tempo, higher tempo will get hotter music from spotify
+Final Project for 08732, a running app, which can play music according to the runner's tempo, higher tempo will get higher BPM music from spotify
 
 ![screenshot](https://lh3.googleusercontent.com/5D1lPsqL7AlwifQbqxnXlnPbFRIkebrEllTDmABhW14cENAPsXhs-hDulYqd0oselAxj4PXaVH6MvpM=w999-h398-rw)
 
