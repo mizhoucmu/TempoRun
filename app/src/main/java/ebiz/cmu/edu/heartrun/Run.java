@@ -29,9 +29,6 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.spotify.sdk.android.authentication.AuthenticationClient;
-import com.spotify.sdk.android.authentication.AuthenticationRequest;
-import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Player;
@@ -189,14 +186,6 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
         }
 
 
-//        // Spotify Music Stream
-//        AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID,
-//                AuthenticationResponse.Type.TOKEN,
-//                REDIRECT_URI);
-//
-//        builder.setScopes(new String[]{"user-read-private", "streaming"});
-//        AuthenticationRequest request = builder.build();
-//        AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
         getMPlayer();
         uris[0] = coolList;
         uris[1] = warmupList;
@@ -432,47 +421,10 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
     // Spotify Music Stream
 
 
-    private static final int REQUEST_CODE = 1337;
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-
-        Log.d("requestCode", requestCode + "");
-        // Check if result comes from the correct activity
-        if (requestCode == REQUEST_CODE) {
-            AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
-            if (response.getType() == AuthenticationResponse.Type.TOKEN) {
-                Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
-                String token = response.getAccessToken();
-                Log.d(TAG,token);
-                if (mPlayer == null) {
-                    mPlayer = Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
-                        @Override
-                        public void onInitialized(Player player) {
-                            player.addConnectionStateCallback(Run.this);
-                            player.addPlayerNotificationCallback(Run.this);
-                            player.setShuffle(true);
-                            reset();
-//                            playOnTempo(curTempo);
-                        }
-
-                        @Override
-                        public void onError(Throwable throwable) {
-                            Log.e(TAG, "Could not initialize player: " + throwable.getMessage());
-                        }
-                    });
-                }
-
-            }
-        }
-    }
-
-
     private void getMPlayer() {
 
         Config playerConfig = new Config(this, this.token, CLIENT_ID);
-        Log.d(TAG,token);
+        Log.d(TAG, token);
         if (mPlayer == null) {
             mPlayer = Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
                 @Override
@@ -481,7 +433,6 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
                     player.addPlayerNotificationCallback(Run.this);
                     player.setShuffle(true);
                     reset();
-//                            playOnTempo(curTempo);
                 }
 
                 @Override
@@ -491,6 +442,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
             });
         }
     }
+
     @Override
     public void onLoggedIn() {
 //        Log.d(TAG, "User logged in");
