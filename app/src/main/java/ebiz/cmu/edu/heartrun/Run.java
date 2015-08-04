@@ -55,7 +55,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
     private final long TEN_SEC = 10000l;
     private final int RECORD_WINDOW = 5;
     private final int TIMES_REQUIRED_TO_CHANGE = 3; //防止歌曲被change的频率太高，设置必须request要求多少次以后才能换歌
-    private final int HIT_THRESHOLD = 18;
+    private final int HIT_THRESHOLD = 10;
     private final long MIN_INTERVAL = 600l;
     private static final double MILE2METER = 1609.344;
 
@@ -96,6 +96,8 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
     private static final String CLIENT_ID = "8babe6b09e98463793a4e7f271814d80";
     // TODO: Replace with your redirect URI
     private static final String REDIRECT_URI = "oauth://ebiz.cmu.edu.heartrun";
+
+    String token = "BQCqBdvGbe4xQwJwUh3xrA4z8gbPYmWpWG1KGoTaiMNvjizgUkHN3TTPyzJO6lYl9nJ7YJz3tHdIYOwlOBp-FRwoGDmBvEMeJx9HYuGKaUzoc73vIk5i1saADmoVfv0RBoaBSoZutPp8jyFun944gin6Uys9P_leefNcjUkU6IYwqdIHgVM2nAMS";
 
 
     /**
@@ -187,14 +189,15 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
         }
 
 
-        // Spotify Music Stream
-        AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID,
-                AuthenticationResponse.Type.TOKEN,
-                REDIRECT_URI);
-
-        builder.setScopes(new String[]{"user-read-private", "streaming"});
-        AuthenticationRequest request = builder.build();
-        AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
+//        // Spotify Music Stream
+//        AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID,
+//                AuthenticationResponse.Type.TOKEN,
+//                REDIRECT_URI);
+//
+//        builder.setScopes(new String[]{"user-read-private", "streaming"});
+//        AuthenticationRequest request = builder.build();
+//        AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
+        getMPlayer();
         uris[0] = coolList;
         uris[1] = warmupList;
         uris[2] = heatList;
@@ -248,9 +251,10 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
         float x = values[0]; // x轴方向的重力加速度，向右为正
         float y = values[1]; // y轴方向的重力加速度，向前为正
         float z = values[2]; // z轴方向的重力加速度，向上为正
+//        Log.d("$$$","," + x + "," + y + "," + z);
 
 
-        if (Math.abs(y) > HIT_THRESHOLD && y > 0) {
+        if (Math.abs(y) > HIT_THRESHOLD && y < 0) {
             boolean isValid = false;
             long threshold = MIN_INTERVAL;
 //            if (Math.abs(y) > 18) {
@@ -278,7 +282,8 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
                     sumInterval += intervals[cursor % RECORD_WINDOW];
                     long avgInterval = sumInterval / (cursor >= RECORD_WINDOW ? RECORD_WINDOW : cursor + 1);
                     tempo = (int) (ONE_MIN / avgInterval);
-                    Log.d(TAG, "Cursor: " + cursor + ", one time Tempo: " + ONE_MIN / current_interval + "  Current Inteval: " + current_interval + "  tempo: " + tempo);
+//                    Log.d("$$$", "Cursor, " + cursor + ", Tempo, " + ONE_MIN / current_interval + ",Current Inteval," + current_interval + ",avg interval, " + avgInterval);
+                    Log.d(TAG, "tempo++:" + cursor);
                     tempoTV.setText(String.valueOf(tempo));
                     playOnTempo(tempo);
                     lastHitTime = current;
@@ -300,13 +305,13 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
         }
         if (musicOn && heartOn && mPlayer != null) {
             if (isPlaying == false) {
-                Log.d(TAG, "Start to play music " + getStage(tempo));
+//                Log.d(TAG, "Start to play music " + getStage(tempo));
                 new StartToPlayMusicTask().execute(String.valueOf(tempo));
             } else if (shallWechange(tempo) != -1) {
-                Log.d(TAG, "++++++++++++ Going to change stage from " + getStage(curTempo) + " to " + getStage(tempo) + "++++++++++++");
+//                Log.d(TAG, "++++++++++++ Going to change stage from " + getStage(curTempo) + " to " + getStage(tempo) + "++++++++++++");
 //                Log.d(TAG, "will change tempo to:   tempo: " + tempo + "[" + getStage(tempo) + "], from curtempo: " + curTempo + ",[: " + getStage(curTempo) + "]");
                 new ChangedMusicTask().execute(String.valueOf(tempo));
-                Log.d(TAG, "Right after ChangedMusicTask: muscicON:" + musicOn);
+//                Log.d(TAG, "Right after ChangedMusicTask: muscicON:" + musicOn);
             }
         }
     }
@@ -322,7 +327,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
 
         @Override
         protected Boolean doInBackground(String... params) {
-            Log.d(TAG, "ChangedMusicTask: MusicON:" + musicOn);
+//            Log.d(TAG, "ChangedMusicTask: MusicON:" + musicOn);
 
             try {
 
@@ -335,19 +340,20 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
                 while (am.getStreamVolume(AudioManager.STREAM_MUSIC) != am.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2) {
                     am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, 2);
                     Thread.sleep(VOULUME_DECREASE_INTERVAL);
-                    Log.d(TAG, "-- to " + am.getStreamVolume(AudioManager.STREAM_MUSIC));
+//                    Log.d(TAG, "-- to " + am.getStreamVolume(AudioManager.STREAM_MUSIC));
                 }
 
                 if (getStage(tempo) == STATUS_PEAK) {
                     am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 2);
                 }
                 mPlayer.play(uris[getStage(tempo)]);
+//                mPlayer.skipToNext();
                 isPlaying = true;
                 // volume++
                 while (am.getStreamVolume(AudioManager.STREAM_MUSIC) != am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
                     am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, 2);
                     Thread.sleep(VOULUME_INCREASE_INTERVAL);
-                    Log.d(TAG, "++ to " + am.getStreamVolume(AudioManager.STREAM_MUSIC));
+//                    Log.d(TAG, "++ to " + am.getStreamVolume(AudioManager.STREAM_MUSIC));
                 }
                 return true;  //To change body of implemented methods use File | Settings | File Templates.
             } catch (Exception e) {
@@ -367,7 +373,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
         @Override
         protected Boolean doInBackground(String... params) {
 
-            Log.d(TAG, "StartToPlayMusicTask");
+//            Log.d(TAG, "StartToPlayMusicTask");
             try {
                 if (musicOn) {
                     int tempo = Integer.parseInt(params[0]);
@@ -377,6 +383,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
 
                     am.setStreamVolume(AudioManager.STREAM_MUSIC, am.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 2);
                     mPlayer.play(uris[getStage(tempo)]);
+//                    mPlayer.skipToNext();
                     // volume++
 //                    while (am.getStreamVolume(AudioManager.STREAM_MUSIC) != am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
 //                        am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, 2);
@@ -437,6 +444,8 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
             if (response.getType() == AuthenticationResponse.Type.TOKEN) {
                 Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
+                String token = response.getAccessToken();
+                Log.d(TAG,token);
                 if (mPlayer == null) {
                     mPlayer = Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
                         @Override
@@ -459,39 +468,63 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
         }
     }
 
+
+    private void getMPlayer() {
+
+        Config playerConfig = new Config(this, this.token, CLIENT_ID);
+        Log.d(TAG,token);
+        if (mPlayer == null) {
+            mPlayer = Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
+                @Override
+                public void onInitialized(Player player) {
+                    player.addConnectionStateCallback(Run.this);
+                    player.addPlayerNotificationCallback(Run.this);
+                    player.setShuffle(true);
+                    reset();
+//                            playOnTempo(curTempo);
+                }
+
+                @Override
+                public void onError(Throwable throwable) {
+                    Log.e(TAG, "Could not initialize player: " + throwable.getMessage());
+                }
+            });
+        }
+    }
     @Override
     public void onLoggedIn() {
-        Log.d(TAG, "User logged in");
+//        Log.d(TAG, "User logged in");
     }
 
     @Override
     public void onLoggedOut() {
-        Log.d(TAG, "User logged out");
+//        Log.d(TAG, "User logged out");
     }
 
     @Override
     public void onLoginFailed(Throwable error) {
-        Log.d(TAG, "Login failed");
+//        Log.d(TAG, "Login failed");
     }
 
     @Override
     public void onTemporaryError() {
-        Log.d(TAG, "Temporary error occurred");
+
+//        Log.d(TAG, "Temporary error occurred");
     }
 
     @Override
     public void onConnectionMessage(String message) {
-        Log.d(TAG, "Received connection message: " + message);
+//        Log.d(TAG, "Received connection message: " + message);
     }
 
     @Override
     public void onPlaybackEvent(EventType eventType, PlayerState playerState) {
-        Log.d(TAG, "Playback event received: " + eventType.name());
+//        Log.d(TAG, "Playback event received: " + eventType.name());
     }
 
     @Override
     public void onPlaybackError(ErrorType errorType, String errorDetails) {
-        Log.d(TAG, "Playback error received: " + errorType.name());
+//        Log.d(TAG, "Playback error received: " + errorType.name());
     }
 
 
@@ -502,7 +535,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
             case RUNNING_READY: {
                 resetDistance();
                 startLocationService();
-                Log.d(TAG, "setRunning: Running state: READY");
+//                Log.d(TAG, "setRunning: Running state: READY");
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                 ImageButton playButton = new ImageButton(this);
                 playButton.setLayoutParams(params);
@@ -524,7 +557,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
                 if (mLocationClient != null && mLocationClient.isConnected() == false) {
                     mLocationClient.connect();
                 }
-                Log.d(TAG, "setRunning: Running state: STARTED");
+//                Log.d(TAG, "setRunning: Running state: STARTED");
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                 ImageButton pauseButton = new ImageButton(this);
                 pauseButton.setLayoutParams(params);
@@ -542,7 +575,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
                 break;
             }
             case RUNNING_PAUSED: {
-                Log.d(TAG, "setRunning: Running state: PAUSED");
+//                Log.d(TAG, "setRunning: Running state: PAUSED");
                 resetLocation();
                 RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                 params1.addRule(RelativeLayout.CENTER_VERTICAL);
@@ -579,7 +612,7 @@ public class Run extends ActionBarActivity implements SensorEventListener, Playe
                 break;
             }
             case RUNNING_STOPPED: {
-                Log.d(TAG, "setRunning: Running state: STOPPED");
+//                Log.d(TAG, "setRunning: Running state: STOPPED");
                 stopLocationService();
                 resetLocation();
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
