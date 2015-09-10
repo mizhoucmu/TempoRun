@@ -1,4 +1,5 @@
 # Tempo Run
+[Get it on Google Play Store](https://play.google.com/store/apps/details?id=ebiz.cmu.edu.heartrun)
 Final Project for 08732, a running app, which can play music according to the runner's tempo, higher tempo will get higher BPM music from spotify
 
 
