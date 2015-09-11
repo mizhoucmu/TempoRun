@@ -9,3 +9,5 @@ Here is a link for  [final presentation](https://www.dropbox.com/s/0sc7ru3djlm06
 
 
 [![Demo](http://img.youtube.com/vi/uvR9t8g48L0/0.jpg)](http://www.youtube.com/watch?v=uvR9t8g48L0)
+
+[![Functions and Design Rationale](http://img.youtube.com/vi/mPtsPoCE88Y/0.jpg)](http://www.youtube.com/watch?v=mPtsPoCE88Y)
