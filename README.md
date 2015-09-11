@@ -7,7 +7,8 @@ Final Project for 08732, a running app, which can play music according to the ru
 
 Here is a link for  [final presentation](https://www.dropbox.com/s/0sc7ru3djlm069m/08723M_Final%20PT_team9.pptx?dl=0)
 
-
+###Demo
 [![Demo](http://img.youtube.com/vi/uvR9t8g48L0/0.jpg)](http://www.youtube.com/watch?v=uvR9t8g48L0)
 
-[![Functions and Design Rationale](http://img.youtube.com/vi/mPtsPoCE88Y/0.jpg)](http://www.youtube.com/watch?v=mPtsPoCE88Y#t=2m03s)
+###Functions and Design Rationale
+[![Functions and Design Rationale](http://img.youtube.com/vi/mPtsPoCE88Y/0.jpg)](http://www.youtube.com/watch?v=mPtsPoCE88Y#t=1m59s)
